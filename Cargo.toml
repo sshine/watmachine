@@ -1,0 +1,19 @@
+[workspace]
+resolver = "2"
+members = []
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+authors = ["Simon Shine", "Troels Halgreen"]
+repository = "https://github.com/sshine/watmachine"
+readme = "README.md"
+
+[workspace.dependencies]
+
+
+[workspace.lints.rust]
+
+
+[workspace.lints.clippy]
