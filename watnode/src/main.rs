@@ -1,7 +1,31 @@
-use anyhow::Result;
+use anyhow::{Result, bail};
 use wasmtime::*;
 
+mod client;
+mod server;
+
 fn main() -> Result<()> {
+    hello_wasm()?;
+
+    let mut args = std::env::args();
+
+    args.next();
+
+    if let Some(arg) = args.next() {
+        match arg.as_str() {
+            "serve" => server::server("127.0.0.1:1337")?,
+            "connect" => client::connect("127.0.0.1:1337")?,
+            other => bail!("Unknown command '{}'", other),
+        }
+    } else {
+        println!("Use: watnode serve");
+        println!("Use: watnode connect");
+    }
+
+    Ok(())
+}
+
+fn hello_wasm() -> Result<()> {
     // Modules can be compiled through either the text or binary format
     let engine = Engine::default();
     let wat = r#"
