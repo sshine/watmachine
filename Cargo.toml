@@ -11,6 +11,7 @@ repository = "https://github.com/sshine/watmachine"
 readme = "README.md"
 
 [workspace.dependencies]
+anyhow = "1.0.97"
 wasmtime = "31.0.0"
 
 [workspace.lints.rust]
