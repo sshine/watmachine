@@ -11,3 +11,4 @@ readme.workspace = true
 workspace = true
 
 [dependencies]
+wasmtime.workspace = true

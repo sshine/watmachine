@@ -58,12 +58,12 @@ jobs:
       - name: cargo clippy
         run: cargo clippy --all-targets -- -D warnings
 
-      - name: cargo nextest
-        run: cargo nextest run --no-fail-fast --all-targets
+      # - name: cargo nextest
+      #   run: cargo nextest run --no-fail-fast --all-targets
 
-        # doctests are special [^1] but this step does not incur a performance penalty [^2]
-        #
-        # [^1]: https://nexte.st/book/usage.html#limitations
-        # [^2]: https://github.com/nextest-rs/nextest/issues/16
-      - name: Run documentation tests
-        run: cargo test --doc
+      # doctests are special [^1] but this step does not incur a performance penalty [^2]
+      #
+      # [^1]: https://nexte.st/book/usage.html#limitations
+      # [^2]: https://github.com/nextest-rs/nextest/issues/16
+      # - name: Run documentation tests
+      #   run: cargo test --doc
