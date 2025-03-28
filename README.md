@@ -5,4 +5,4 @@ Project purpose: Write a network-based node that executes web-assembly sent betw
 ## Milestone 0:
 
 - Achieve this without tokio or async.
-- Just use `wasmtime` and `std::net`
+- Just use `wasmtime` and `std::net`.
