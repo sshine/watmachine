@@ -16,32 +16,32 @@ jobs:
       fail-fast: false
       matrix:
         os:
-			    - ubuntu-latest
+          - ubuntu-latest
           # - windows-latest
-					# - macos-latest
+          # - macos-latest
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2, 2024-10-23
 
       - name: Install stable Rust toolchain
-				id: rust-toolchain
+        id: rust-toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
 
-			- uses: taiki-e/install-action@63f2419bb6a642b9973690fd13cf07b750f65635 # v2.49.37, 2025-03-27
-  			with:
-    			tool: cargo-nextest
+      - uses: taiki-e/install-action@63f2419bb6a642b9973690fd13cf07b750f65635 # v2.49.37, 2025-03-27
+        with:
+          tool: cargo-nextest
 
-			- name: Cache Rust dependencies
-				uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3, 2025-03-19
-				with:
-					path: |
-						~/.cargo/registry
-						~/.cargo/git
-						target
-					key: ${{ steps.rust-toolchain.outputs.cachekey }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache Rust dependencies
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3, 2025-03-19
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ steps.rust-toolchain.outputs.cachekey }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Fail on too long lines, so rustfmt doesn't have to
         if: runner.os == 'Linux'
