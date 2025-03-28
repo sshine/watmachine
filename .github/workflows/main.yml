@@ -1,0 +1,69 @@
+name: Rust
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+			    - ubuntu-latest
+          # - windows-latest
+					# - macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2, 2024-10-23
+
+      - name: Install stable Rust toolchain
+				id: rust-toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+			- uses: taiki-e/install-action@63f2419bb6a642b9973690fd13cf07b750f65635 # v2.49.37, 2025-03-27
+  			with:
+    			tool: cargo-nextest
+
+			- name: Cache Rust dependencies
+				uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3, 2025-03-19
+				with:
+					path: |
+						~/.cargo/registry
+						~/.cargo/git
+						target
+					key: ${{ steps.rust-toolchain.outputs.cachekey }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Fail on too long lines, so rustfmt doesn't have to
+        if: runner.os == 'Linux'
+        run: "! grep -rP '^.{101}' --include='*.rs' ."
+
+      - name: cargo fmt
+        run: cargo fmt --all -- --check
+
+      - name: cargo doc
+        run: cargo doc --no-deps --workspace --document-private-items
+        env:
+          RUSTDOCFLAGS: -D warnings
+
+      - name: cargo clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: cargo nextest
+        run: cargo nextest run --no-fail-fast --all-targets
+
+        # doctests are special [^1] but this step does not incur a performance penalty [^2]
+        #
+        # [^1]: https://nexte.st/book/usage.html#limitations
+        # [^2]: https://github.com/nextest-rs/nextest/issues/16
+      - name: Run documentation tests
+        run: cargo test --doc
