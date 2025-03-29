@@ -45,7 +45,8 @@ jobs:
 
       - name: Fail on too long lines, so rustfmt doesn't have to
         if: runner.os == 'Linux'
-        run: "! grep -rP '^.{101}' --include='*.rs' ."
+        run: "! grep -rP '^.{101}' --include='*.rs' --exclude-dir=target ."
+
 
       - name: cargo fmt
         run: cargo fmt --all -- --check
