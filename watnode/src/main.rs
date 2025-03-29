@@ -14,12 +14,18 @@ fn main() -> Result<()> {
     if let Some(arg) = args.next() {
         match arg.as_str() {
             "serve" => server::server("127.0.0.1:1337")?,
-            "connect" => client::connect("127.0.0.1:1337")?,
+            "connect" => {
+                let filename = args
+                    .next()
+                    .ok_or_else(|| anyhow::anyhow!("No filename provided for connect command"))?;
+
+                client::connect("127.0.0.1:1337", &filename)?
+            }
             other => bail!("Unknown command '{}'", other),
         }
     } else {
         println!("Use: watnode serve");
-        println!("Use: watnode connect");
+        println!("Use: watnode connect <filename>");
     }
 
     Ok(())
