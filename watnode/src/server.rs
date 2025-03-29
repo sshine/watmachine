@@ -45,7 +45,7 @@ fn handle_client(mut stream: TcpStream) -> Result<()> {
         execute_module(&wasm_buf)
             .map_err(|e| anyhow::anyhow!("Failed to execute wasm module: {e}"))?;
 
-        Ok(format!("Wasm executed successfully."))
+        Ok("Wasm executed successfully.".into())
     })();
 
     // Send response to client
