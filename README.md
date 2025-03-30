@@ -4,5 +4,5 @@ Project purpose: Write a network-based node that executes web-assembly sent betw
 
 ## Milestones:
 
-- Milestone 1: https://github.com/sshine/watmachine/milestone/1
-- Milestone 2: https://github.com/sshine/watmachine/milestone/2
+- [Milestone 1: Basic client/server + wasm engine](https://github.com/sshine/watmachine/milestone/1)
+- [Milestone 2: Persistently connected nodes]( https://github.com/sshine/watmachine/milestone/2)
