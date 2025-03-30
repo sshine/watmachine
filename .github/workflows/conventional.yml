@@ -1,0 +1,58 @@
+name: Conventional Commits
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2, 2024-10-23
+
+      - name: Validate conventional commit format
+        run: |
+          set -e
+
+          ALLOWED_TYPES="feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert"
+
+          # Compare against the target branch
+          BASE_REF="origin/$GITHUB_BASE_REF"
+
+          # Digests for each commit between HEAD and $BASE_REF
+          COMMITS=$(git log $BASE_REF..HEAD --format="%H")
+
+          if [ -z "$COMMITS" ]; then
+            echo "No commits found to validate."
+            exit 0
+          fi
+
+          COMMIT_PATTERN="^(${ALLOWED_TYPES})(\([a-z0-9_-]+\))?: .+$"
+          INVALID_COMMITS=0
+
+          # Check each commit
+          for COMMIT in $COMMITS; do
+            COMMIT_MSG=$(git log --format=%B -n 1 $COMMIT)
+            FIRST_LINE=$(echo "$COMMIT_MSG" | head -n 1)
+
+            if ! echo "$FIRST_LINE" | grep -qE "$COMMIT_PATTERN"; then
+              echo "❌ Invalid commit message: $FIRST_LINE"
+              echo "   Commit: ${COMMIT:0:8}"
+              INVALID_COMMITS=$((INVALID_COMMITS + 1))
+            else
+              echo "✅ ${FIRST_LINE}"
+            fi
+          done
+
+          # Report results
+          if [ $INVALID_COMMITS -gt 0 ]; then
+            echo ""
+            echo "❌ Found $INVALID_COMMITS commit(s) not following conventional format."
+            echo "   Expected format: type(scope): description"
+            echo "   Where type is one of: $(echo $ALLOWED_TYPES | tr '|' ', ')"
+            exit 1
+          else
+            echo ""
+            echo "✅ All commit messages follow the conventional commits format!"
+          fi
