@@ -1,71 +1,42 @@
-use anyhow::{Result, bail};
-use wasmtime::*;
+use clap::Parser;
+use std::net::{SocketAddr, TcpListener};
 
-mod client;
-mod server;
+mod node;
+mod types;
 
-fn main() -> Result<()> {
-    hello_wasm()?;
+use node::Node;
+#[derive(Parser)]
+struct Opt {
+    /// If provided, bind to the provided address (e.g. 127.0.0.1:1337).
+    /// If omitted, the OS will pick a free port on 127.0.0.1.
+    #[clap(long)]
+    addr: Option<SocketAddr>,
 
-    let mut args = std::env::args();
-
-    args.next();
-
-    if let Some(arg) = args.next() {
-        match arg.as_str() {
-            "serve" => server::server("127.0.0.1:1337")?,
-            "connect" => {
-                let filename = args
-                    .next()
-                    .ok_or_else(|| anyhow::anyhow!("No filename provided for connect command"))?;
-
-                client::connect("127.0.0.1:1337", &filename)?
-            }
-            other => bail!("Unknown command '{}'", other),
-        }
-    } else {
-        println!("Use: watnode serve");
-        println!("Use: watnode connect <filename>");
-    }
-
-    Ok(())
+    /// If present, listen for inbound connections
+    #[clap(long)]
+    gateway: bool,
 }
 
-fn hello_wasm() -> Result<()> {
-    // Modules can be compiled through either the text or binary format
-    let engine = Engine::default();
-    let wat = r#"
-        (module
-            (import "host" "host_func" (func $host_hello (param i32)))
+fn main() -> anyhow::Result<()> {
+    let opt = Opt::parse();
 
-            (func (export "hello")
-                i32.const 3
-                call $host_hello)
-        )
-    "#;
-    let module = Module::new(&engine, wat)?;
+    let bind_addr = opt.addr.unwrap_or_else(|| "127.0.0.1:0".parse().unwrap());
+    let actual_addr = if bind_addr.port() == 0 {
+        let listener = TcpListener::bind(bind_addr)?;
+        let local = listener.local_addr()?;
+        std::mem::drop(listener);
+        local
+    } else {
+        bind_addr
+    };
 
-    // Create a `Linker` which will be later used to instantiate this module.
-    // Host functionality is defined by name within the `Linker`.
-    let mut linker = Linker::new(&engine);
-    linker.func_wrap(
-        "host",
-        "host_func",
-        |caller: Caller<'_, u32>, param: i32| {
-            println!("Got {} from WebAssembly", param);
-            println!("my host state is: {}", caller.data());
-        },
-    )?;
+    println!(
+        "Starting node on {} as {}",
+        actual_addr,
+        if opt.gateway { "gateway" } else { "edge" }
+    );
 
-    // All wasm objects operate within the context of a "store". Each
-    // `Store` has a type parameter to store host-specific data, which in
-    // this case we're using `4` for.
-    let mut store = Store::new(&engine, 4);
-    let instance = linker.instantiate(&mut store, &module)?;
-    let hello = instance.get_typed_func::<(), ()>(&mut store, "hello")?;
-
-    // And finally we can call the wasm!
-    hello.call(&mut store, ())?;
+    let mut node = Node::new(actual_addr, opt.gateway);
 
     Ok(())
 }

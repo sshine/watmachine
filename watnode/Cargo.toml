@@ -13,3 +13,5 @@ workspace = true
 [dependencies]
 anyhow.workspace = true
 wasmtime.workspace = true
+serde.workspace = true
+clap.workspace = true

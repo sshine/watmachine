@@ -1,23 +1,27 @@
-use anyhow::{Result, bail};
+use anyhow::{Result, ensure};
 use std::fs::{File, metadata};
 use std::io::{Read, Write};
 use std::net::TcpStream;
 
 pub fn connect(addr: &str, filename: &str) -> Result<()> {
     // Do some basic checks
-    if filename.is_empty() {
-        bail!("Filename cannot be empty");
-    }
-    if filename.len() > 255 {
-        bail!("Filename is too long");
-    }
-    if !filename.ends_with(".wasm") {
-        bail!("File '{}' does not have a .wasm extension", filename);
-    }
+    ensure!(!filename.is_empty(), "Filename cannot be empty");
+
+    ensure!(filename.len() <= 255, "Filename is too long");
+
+    ensure!(
+        filename.ends_with(".wasm"),
+        "File '{}' does not have a .wasm extension",
+        filename
+    );
+
     let metadata = metadata(filename)?;
-    if metadata.is_dir() {
-        bail!("'{}' is a directory, not a .wasm file", filename);
-    }
+
+    ensure!(
+        !metadata.is_dir(),
+        "'{}' is a directory, not a .wasm file",
+        filename
+    );
 
     // Read file
     let mut file = File::open(filename)?;
